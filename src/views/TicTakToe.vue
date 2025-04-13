@@ -8,46 +8,58 @@
       <button @click="showTogether = true">🕒 How long are we together?</button>
     </div>
 
+    <!-- Loading Screen -->
+    <div v-if="showLoading" class="loading-overlay">
+      <div class="loading-content">
+        <img src="@/assets/tictaktoe/load.png" alt="Loading..." />
+        <p class="forgive-message">I will forgive you one day...</p>
+      </div>
+    </div>
+
     <!-- Birthday Modal with Tic-Tac-Toe -->
     <div v-if="showBirthday" class="modal-overlay">
       <div class="modal">
-        <h2>🎉 Happy Birthday! 🎉</h2>
-        <p>Let's play a fun game of Tic-Tac-Toe!</p>
-
-        <div class="tic-tac-toe-board">
-          <div v-for="(cell, index) in board" :key="index" class="tic-tac-toe-cell" @click="makeMove(index)">
-            <img v-if="cell === 'X'" :src="playerImg" alt="Player" />
-            <img v-else-if="cell === 'O'" :src="aiImg" alt="AI" />
+        <template v-if="aiWon">
+          <div class="kaka-message">
+            💩 Du hast <strong>KAKA</strong> in der Hose 💩
           </div>
-        </div>
+        </template>
+        <template v-else>
+          <h2>🎉 Happy Birthday! 🎉</h2>
+          <p>Let's play a fun game of Tic-Tac-Toe!</p>
 
-        <div v-if="winner" class="winner-message">
-          <p>🎉 Player {{ winner }} wins! 🎉</p>
-          <button @click="resetGame">Play Again</button>
-        </div>
-        <div v-if="isDraw" class="draw-message">
-          <p>It's a draw! 💫</p>
-          <button @click="resetGame">Play Again</button>
-        </div>
+          <div class="tic-tac-toe-board">
+            <div v-for="(cell, index) in board" :key="index" class="tic-tac-toe-cell" @click="makeMove(index)">
+              <img v-if="cell === 'X'" :src="playerImg" alt="Player" />
+              <img v-else-if="cell === 'O'" :src="aiImg" alt="AI" />
+            </div>
+          </div>
+
+          <div v-if="winner" class="winner-message">
+            <p>🎉 Player {{ winner }} wins! 🎉</p>
+            <div v-if="winner === 'X'" class="forgive-message">
+              Fine... I will forgive you one day...
+            </div>
+            <button @click="resetGame">Play Again</button>
+          </div>
+
+          <div v-if="isDraw" class="draw-message">
+            <p>It's a draw! 💫</p>
+            <button @click="resetGame">Play Again</button>
+          </div>
+        </template>
 
         <button @click="showBirthday = false">Close</button>
       </div>
     </div>
 
     <!-- Together Modal -->
-    <div v-if="showTogether" class="modal-overlay" @click.self="showTogether = false">
+    <div v-if="showTogether" class="modal-overlay">
       <div class="modal">
-        <h2>🕒 Our Journey So Far</h2>
-        <p>We've been together for <strong>{{ timeTogether }}</strong> 💫</p>
+        <h2>⏳ Time Together</h2>
+        <p>We’ve been together for:</p>
+        <p style="font-size: 1.4rem; font-weight: bold;">{{ timeTogether }}</p>
         <button @click="showTogether = false">Close</button>
-      </div>
-    </div>
-
-    <!-- Loading screen -->
-    <div v-if="showLoading" class="loading-overlay">
-      <div class="loading-content">
-        <img src="@/assets/tictaktoe/load.png" alt="Loading Love" />
-        <p>i'll forgive u one day :(</p>
       </div>
     </div>
   </div>
@@ -69,42 +81,36 @@ const startDate = new Date('2024-09-13')
 const timeTogether = computed(() => {
   const now = new Date()
   const diff = now - startDate
-
   const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25))
   const months = Math.floor((diff % (1000 * 60 * 60 * 24 * 365.25)) / (1000 * 60 * 60 * 24 * 30.44))
   const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24))
-
   return `${years} year(s), ${months} month(s), and ${days} day(s)`
 })
 
 const board = ref(Array(9).fill(''))
 const currentPlayer = ref('X')
 const winner = ref(null)
+const aiWon = ref(false)
 const isDraw = ref(false)
 
 const router = useRouter()
 
 function makeMove(index) {
-  if (!board.value[index] && !winner.value && !isDraw.value) {
-    board.value[index] = currentPlayer.value
+  if (!board.value[index] && !winner.value && !isDraw.value && currentPlayer.value === 'X') {
+    board.value[index] = 'X'
 
     if (checkWinner()) {
-      winner.value = currentPlayer.value
-
-      if (winner.value === 'X') {
-        showLoading.value = true
-        setTimeout(() => {
-          router.push('/bday/memory')
-        }, 5000)
-      } else {
-        router.push('/bday/message') // AI wins
-      }
-
+      winner.value = 'X'
+      showLoading.value = true
+      setTimeout(() => {
+        showLoading.value = false
+        router.push('/bday/memory') // Redirect after loading screen
+      }, 5000)
     } else if (board.value.every(cell => cell !== '')) {
       isDraw.value = true
     } else {
       currentPlayer.value = 'O'
-      setTimeout(aiMove, 500) // Slight delay for realism
+      setTimeout(aiMove, 500)
     }
   }
 }
@@ -114,12 +120,18 @@ function aiMove() {
       .map((cell, index) => cell === '' ? index : null)
       .filter(index => index !== null)
 
+  if (availableMoves.length === 0) return
+
   const randomMove = availableMoves[Math.floor(Math.random() * availableMoves.length)]
   board.value[randomMove] = 'O'
 
   if (checkWinner()) {
     winner.value = 'O'
-    router.push('/bday/message') // AI wins
+    aiWon.value = true
+    setTimeout(() => {
+      resetGame()
+      aiWon.value = false
+    }, 4000)
   } else if (board.value.every(cell => cell !== '')) {
     isDraw.value = true
   } else {
@@ -133,7 +145,6 @@ function checkWinner() {
     [0, 3, 6], [1, 4, 7], [2, 5, 8],
     [0, 4, 8], [2, 4, 6]
   ]
-
   return winPatterns.some(([a, b, c]) => {
     return board.value[a] &&
         board.value[a] === board.value[b] &&
@@ -259,7 +270,7 @@ button:hover {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: #fffbea;
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -277,8 +288,41 @@ button:hover {
   margin-bottom: 1rem;
 }
 
+.forgive-message {
+  font-size: 1.5rem;
+  color: #ff0066;
+  font-weight: bold;
+  animation: floatIn 1s ease-in-out;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kaka-message {
+  font-size: 2rem;
+  color: #ff0055;
+  font-weight: bold;
+  animation: kakaShake 0.6s infinite alternate;
+  text-shadow: 2px 2px 0 #000;
+  padding: 2rem 0;
+}
+
+@keyframes kakaShake {
+  0% { transform: rotate(-2deg) scale(1); }
+  50% { transform: rotate(2deg) scale(1.1); }
+  100% { transform: rotate(-2deg) scale(1); }
 }
 </style>

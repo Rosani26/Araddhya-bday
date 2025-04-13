@@ -13,7 +13,8 @@
     <p v-if="error" style="color:red;">Incorrect password. Try again dummy :P</p>
 
     <!-- Show hint after first incorrect attempt -->
-    <p v-if="hint" style="color: #ff6347;">When did u swipe ur GF back on Hinge?</p>
+    <p v-if="hint" style="color: #ff00e7;"><strong>Hint:</strong> When did u swipe ur GF back on Hinge? </p>
+    <p v-if="hint" style="color: #ff0066">XX.XX.XXXX</p>
   </div>
 </template>
 
@@ -38,7 +39,9 @@ const handleLogin = () => {
     if (!hint.value) {
       hint.value = true  // Show the hint only after the first incorrect attempt
     }
+    password.value = ''  // Clear the input field after a wrong guess
   }
+
 }
 </script>
 
