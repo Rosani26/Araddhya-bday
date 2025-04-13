@@ -88,7 +88,7 @@ function checkMatch() {
 }
 
 function goToNextPage() {
-  router.push('/journey/riddle')
+  router.push('/snake/game')
 }
 </script>
 

@@ -32,7 +32,7 @@ const handleLogin = () => {
   if (password.value === correctPassword) {
     error.value = false
     hint.value = false  // Reset hint on successful login
-    router.push('/see/journey')
+    router.push('/journey/riddle')  // Redirect to the next page
   } else {
     error.value = true
     if (!hint.value) {

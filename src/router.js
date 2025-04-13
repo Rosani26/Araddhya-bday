@@ -1,18 +1,16 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import {createRouter, createWebHistory} from 'vue-router'
 import Home from './views/Home.vue'
-import About from './views/SeeJourney.vue'
-import Journey from './views/JourneyRiddle.vue'
-import JourneyCompleted from "@/views/journeyCompleted.vue";
+import TicTakToe from "@/views/TicTakToe.vue";
 import JourneyRiddle from "@/views/JourneyRiddle.vue";
 import BdayMessage from "@/views/BdayMessage.vue";
-import SeeJourney from "@/views/SeeJourney.vue";
 import Memory from "@/views/Memory.vue";
+import SnakeGame from "@/views/SnakeGame.vue";
 
 const routes = [
     { path: '/', component: Home },
-    { path: '/see/journey', component: SeeJourney },
-    { path: '/journey/riddle', component: JourneyRiddle }, // 👈 Add this line
-    { path: '/journey/completed', component: JourneyCompleted }, // 👈 Add this line
+    { path: '/journey/riddle', component: JourneyRiddle },
+    { path: '/snake/game', component: SnakeGame }, // 👈 Add this line
+    { path: '/tictaktoe', component: TicTakToe }, // 👈 Add this line
     { path: '/bday/message', component: BdayMessage }, // 👈 Add this line
     { path: '/bday/memory', component: Memory } // 👈 Add this line
 ]

@@ -8,16 +8,16 @@
       <button @click="showTogether = true">🕒 How long are we together?</button>
     </div>
 
-    <!-- Happy Birthday Modal with Tic-Tac-Toe -->
+    <!-- Birthday Modal with Tic-Tac-Toe -->
     <div v-if="showBirthday" class="modal-overlay">
       <div class="modal">
         <h2>🎉 Happy Birthday! 🎉</h2>
         <p>Let's play a fun game of Tic-Tac-Toe!</p>
 
-        <!-- Tic-Tac-Toe Board -->
         <div class="tic-tac-toe-board">
           <div v-for="(cell, index) in board" :key="index" class="tic-tac-toe-cell" @click="makeMove(index)">
-            {{ cell }}
+            <img v-if="cell === 'X'" :src="playerImg" alt="Player" />
+            <img v-else-if="cell === 'O'" :src="aiImg" alt="AI" />
           </div>
         </div>
 
@@ -34,12 +34,20 @@
       </div>
     </div>
 
-    <!-- Together Time Modal -->
+    <!-- Together Modal -->
     <div v-if="showTogether" class="modal-overlay" @click.self="showTogether = false">
       <div class="modal">
         <h2>🕒 Our Journey So Far</h2>
         <p>We've been together for <strong>{{ timeTogether }}</strong> 💫</p>
         <button @click="showTogether = false">Close</button>
+      </div>
+    </div>
+
+    <!-- Loading screen -->
+    <div v-if="showLoading" class="loading-overlay">
+      <div class="loading-content">
+        <img src="@/assets/tictaktoe/load.png" alt="Loading Love" />
+        <p>i'll forgive u one day :(</p>
       </div>
     </div>
   </div>
@@ -49,14 +57,15 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
-// Modal toggles
 const showTogether = ref(false)
 const showBirthday = ref(false)
+const showLoading = ref(false)
 
-// 🎯 Replace this date with your actual relationship start date
+import playerImg from '@/assets/tictaktoe/player1.png'
+import aiImg from '@/assets/tictaktoe/player2.png'
+
 const startDate = new Date('2024-09-13')
 
-// Compute time together
 const timeTogether = computed(() => {
   const now = new Date()
   const diff = now - startDate
@@ -68,33 +77,39 @@ const timeTogether = computed(() => {
   return `${years} year(s), ${months} month(s), and ${days} day(s)`
 })
 
-// Tic-Tac-Toe logic (Single Player)
 const board = ref(Array(9).fill(''))
-const currentPlayer = ref('X')  // Player is 'X', AI is 'O'
+const currentPlayer = ref('X')
 const winner = ref(null)
 const isDraw = ref(false)
 
-const router = useRouter() // Vue Router instance
+const router = useRouter()
 
 function makeMove(index) {
   if (!board.value[index] && !winner.value && !isDraw.value) {
     board.value[index] = currentPlayer.value
+
     if (checkWinner()) {
       winner.value = currentPlayer.value
-      // Redirect to the "Happy Birthday Message" page after winning
-      router.push('/bday/memory')
+
+      if (winner.value === 'X') {
+        showLoading.value = true
+        setTimeout(() => {
+          router.push('/bday/memory')
+        }, 5000)
+      } else {
+        router.push('/bday/message') // AI wins
+      }
+
     } else if (board.value.every(cell => cell !== '')) {
       isDraw.value = true
     } else {
-      currentPlayer.value = 'O'  // AI's turn
-      aiMove()
+      currentPlayer.value = 'O'
+      setTimeout(aiMove, 500) // Slight delay for realism
     }
   }
 }
 
-// AI Move
 function aiMove() {
-  // Basic AI strategy (random move)
   const availableMoves = board.value
       .map((cell, index) => cell === '' ? index : null)
       .filter(index => index !== null)
@@ -103,27 +118,26 @@ function aiMove() {
   board.value[randomMove] = 'O'
 
   if (checkWinner()) {
-    winner.value = 'O'  // AI wins
-    // Redirect to the "Happy Birthday Message" page after AI wins
-    router.push('/bday/message')
+    winner.value = 'O'
+    router.push('/bday/message') // AI wins
   } else if (board.value.every(cell => cell !== '')) {
-    isDraw.value = true  // Draw
+    isDraw.value = true
   } else {
-    currentPlayer.value = 'X'  // Back to player's turn
+    currentPlayer.value = 'X'
   }
 }
 
-// Check for a winner
 function checkWinner() {
   const winPatterns = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
-    [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
-    [0, 4, 8], [2, 4, 6] // diagonals
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+    [0, 4, 8], [2, 4, 6]
   ]
 
-  return winPatterns.some(pattern => {
-    const [a, b, c] = pattern
-    return board.value[a] && board.value[a] === board.value[b] && board.value[a] === board.value[c]
+  return winPatterns.some(([a, b, c]) => {
+    return board.value[a] &&
+        board.value[a] === board.value[b] &&
+        board.value[a] === board.value[c]
   })
 }
 
@@ -172,7 +186,6 @@ button:hover {
   transform: scale(1.05);
 }
 
-/* Modal styles */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -207,7 +220,6 @@ button:hover {
   width: 60px;
   height: 60px;
   border: 2px solid #3b3b3b;
-  font-size: 2rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -220,11 +232,18 @@ button:hover {
   background-color: #ffcb05;
 }
 
+.tic-tac-toe-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .winner-message, .draw-message {
   margin-top: 20px;
 }
 
-.winner-message button, .draw-message button {
+.winner-message button,
+.draw-message button {
   margin-top: 10px;
   background-color: #ffcb05;
   padding: 8px 16px;
@@ -232,5 +251,34 @@ button:hover {
   border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fffbea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  flex-direction: column;
+}
+
+.loading-content {
+  text-align: center;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.loading-content img {
+  width: 180px;
+  margin-bottom: 1rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
 }
 </style>
