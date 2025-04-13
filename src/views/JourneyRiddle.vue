@@ -1,7 +1,7 @@
 <template>
   <div>
     <h2>About Us</h2>
-    <p>Do you want to see our journey?</p>
+    <p>Do you want to see more?</p>
     <button @click="askRiddle">Yes, show me!</button>
 
     <!-- Riddle -->
