@@ -6,7 +6,7 @@
 
     <!-- Riddle -->
     <div v-if="showRiddle" class="riddle">
-      <p><strong>Riddle:</strong> What was writen on the cake Rosani gave u?</p>
+      <p><strong>Riddle:</strong> What was written on the cake Rosani gave u?</p>
       <p style="color: #ff0066"><strong>Hint:</strong> no capital letters, write everything small XD</p>
       <input v-model="answer" type="text" placeholder="Type your answer..." />
       <button @click="checkAnswer">Submit</button>
