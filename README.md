@@ -34,4 +34,13 @@ npm run build
 npm install vue-router@4
 ```
 
+### got to Website 
+
+
+[localhost:5173](http://localhost:5173)
+
+### if you need any help
+
+Contact me Rosani :)
+
 
